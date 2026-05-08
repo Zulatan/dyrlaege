@@ -39,3 +39,4 @@ docker-compose.override.yml
 ### Build / tooling ###
 /coverage/
 backend/Dockerfile copy
+ForMe.md
