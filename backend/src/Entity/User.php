@@ -47,6 +47,7 @@ class User
      * @var Collection<int, Task>
      */
     #[ORM\OneToMany(targetEntity: Task::class, mappedBy: 'user')]
+    #[ORM\JoinColumn(nullable: true)]
     private Collection $tasks;
 
     public function __construct()

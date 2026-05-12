@@ -32,20 +32,44 @@ final class UserController extends AbstractController
             return [
                 'id' => $user->getId(),
                 'bruger' => $user->getUsername(),
-                'mail' => $user->getEmail()
+                'mail' => $user->getEmail(),
+                'rolle' => $user->getRole(),
+                'opgaver' => array_map(function ($task) {
+                    return [
+                        'id' => $task->getId(),
+                        'title' => $task->getTitle(),
+                        'status' => $task->getStatus()->value,
+                        'prioritet' => $task->getPriority()->value
+                    ];
+                }, $user->getTasks()->toArray())
             ];
         }, $users));
     }
 
     #[Route('/{id}', name: 'user_find_one', methods: ['GET'])]
-    public function show(?User $user): Response
+    public function show(?User $user, UserRepository $userRepository, int $id): Response
     {
+        $userRepository->find($id);
+
         if ($user === null) {
             return new JsonResponse('No users found', 200);
         } 
+
         return new JsonResponse([
             'bruger' => $user->getUsername(),
-            'mail' => $user->getEmail()
+            'mail' => $user->getEmail(),
+            'rolle' => $user->getRole(),
+            'opgaver' => array_map(function ($task) {
+                return [
+                    'id' => $task->getId(),
+                    'titel' => $task->getTitle(),
+                    'beskrivelse' => $task->getDescription(),
+                    'prioritet' => $task->getPriority(),
+                    'status' => $task->getStatus(),
+                    'færdiggøres inden' => $task->getDueDate(),
+                    'oprettet' => $task->getCreatedAt()
+                ];
+            }, $user->getTasks()->toArray())
         ]);
     }
 

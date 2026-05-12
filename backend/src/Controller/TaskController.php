@@ -2,10 +2,12 @@
 
 namespace App\Controller;
 
+use DateTimeImmutable;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Entity\Task;
+use App\Entity\User;
 use App\Enum\TaskPriority;
 use App\Enum\TaskStatus;
 use App\Repository\TaskRepository;
@@ -23,8 +25,7 @@ final class TaskController extends AbstractController
     {
         $tasks = $taskRepository->findAll();
         if ($tasks === []) {
-            // return throw new Exception('No users found');
-            return new JsonResponse('No users found', 200);
+            return new JsonResponse('No tasks found', 200);
         }
 
         // return $this->json($tasks);
@@ -34,7 +35,8 @@ final class TaskController extends AbstractController
                 'title' => $task->getTitle(),
                 'description' => $task->getDescription(),
                 'priority' => $task->getPriority(),
-                'status' => $task->getStatus()
+                'status' => $task->getStatus(),
+                'tildelt til' => $task->getUser(),
             ];
         }, $tasks));
     }
@@ -91,10 +93,16 @@ final class TaskController extends AbstractController
     ): Response
     {
         try {
+            $user = $entityManager->getRepository(User::class)->find(1);
+
             $task = new Task();
             $task->setTitle('Sej titel.');
             $task->setDescription('Sej beskrivelse på opgaven.');
-            $task->setPriority(TaskPriority::Minor);
+            $task->setPriority(TaskPriority::Moderate);
+            $task->setCreatedAt(new DateTimeImmutable("now"));
+            $task->setDueDate(new DateTimeImmutable("+1 day"));
+            // relates this taska to a user
+            $task->setUser($user);
 
             $errors = $validator->validate($task);
 
@@ -116,9 +124,12 @@ final class TaskController extends AbstractController
             // actually executes the queries (i.e. the INSERT query)
             $entityManager->flush();
     
-            return new Response('Oprettede ny opgave med titlen: '.$task->getTitle());
-        } catch (\Exception $e) {
-            throw new \Exception($e->getMessage());
+            return new Response(
+                'Oprettede ny opgave med titlen: '.$task->getTitle()
+                . ' og tildelte opgaven til: ' . $task->getUser()->getName()
+            );
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage());
         }
     }
 
