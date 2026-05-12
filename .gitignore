@@ -40,3 +40,4 @@ docker-compose.override.yml
 /coverage/
 backend/Dockerfile copy
 ForMe.md
+doc.md

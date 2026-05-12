@@ -36,7 +36,15 @@ final class TaskController extends AbstractController
                 'description' => $task->getDescription(),
                 'priority' => $task->getPriority(),
                 'status' => $task->getStatus(),
-                'tildelt til' => $task->getUser(),
+                // 'tildelt til' => $task->getUser(),
+                'tildelt til' => $task->getUser()
+                    ? [
+                        'id' => $task->getUser()->getId(),
+                        'brugernavn' => $task->getUser()->getUsername(),
+                        'email' => $task->getUser()->getEmail(),
+                        'rolle' => $task->getUser()->getRole(),
+                    ]
+                    : null,
             ];
         }, $tasks));
     }
@@ -81,6 +89,14 @@ final class TaskController extends AbstractController
             'description' => $task->getDescription(),
             'priority' => $task->getPriority(),
             'status' => $task->getStatus(),
+            'tildelt til' => $task->getUser()
+                ? [
+                    'id' => $task->getUser()->getId(),
+                    'brugernavn' => $task->getUser()->getUsername(),
+                    'email' => $task->getUser()->getEmail(),
+                    'rolle' => $task->getUser()->getRole(),
+                ]
+                : null,
         ]);
     }
 
