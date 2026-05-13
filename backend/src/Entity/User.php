@@ -7,10 +7,15 @@ use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use InvalidArgumentException;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
+#[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
+// class User implements UserInterface, PasswordAuthenticatedUserInterface
 class User
 {
     #[ORM\Id]
@@ -35,6 +40,9 @@ class User
     #[ORM\Column(length: 50)]
     private ?string $username = null;
 
+    /**
+     * @var string The hashed password
+     */
     #[Assert\NotBlank]
     #[Assert\Length(min: 8, max: 50)]
     #[ORM\Column(length: 255)]
@@ -42,6 +50,12 @@ class User
 
     #[ORM\Column(enumType: UserRole::class)]
     private ?UserRole $role = null;
+
+    /**
+     * @var list<string> The user roles
+     */
+    #[ORM\Column]
+    private array $roles = [];
 
     /**
      * @var Collection<int, Task>
@@ -109,6 +123,9 @@ class User
         return $this;
     }
     
+    /**
+     * @see PasswordAuthenticatedUserInterface
+     */
     public function getPassword(): ?string
     {
         return $this->password;
@@ -163,4 +180,50 @@ class User
         return $this;
     }
 
+    private function ensureIsValidEmail(string $email): void
+    {
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new InvalidArgumentException(
+                sprintf(
+                    '"%s" is not a valid email address',
+                    $email,
+                ),
+            );
+        }
+    }
+
+
+
+
+    /**
+     * A visual identifier that represents this user.
+     *
+     * @see UserInterface
+     */
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->email;
+    }
+
+    /**
+     * @see UserInterface
+     */
+    public function getRoles(): array
+    {
+        $roles = $this->roles;
+        // guarantee every user at least has ROLE_USER
+        $roles[] = 'ROLE_USER';
+
+        return array_unique($roles);
+    }
+
+    /**
+     * @param list<string> $roles
+     */
+    public function setRoles(array $roles): static
+    {
+        $this->roles = $roles;
+
+        return $this;
+    }
 }
