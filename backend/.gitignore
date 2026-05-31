@@ -40,3 +40,6 @@ docker-compose.override.yml
 
 ### Build / tooling ###
 /coverage/
+###> lexik/jwt-authentication-bundle ###
+/config/jwt/*.pem
+###< lexik/jwt-authentication-bundle ###
