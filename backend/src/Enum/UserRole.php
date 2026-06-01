@@ -3,7 +3,7 @@ namespace App\Enum;
 
 enum UserRole: string
 {
-    case USER = 'user';
-    case SUPERUSER = 'superuser';
-    case ADMIN = 'admin';
+    case ADMIN = 'ROLE_ADMIN';
+    case VET = 'ROLE_VET';
+    case RECEPTIONIST = 'ROLE_RECEPTIONIST';
 }
