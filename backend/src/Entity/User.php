@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use InvalidArgumentException;
+use Override;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -16,7 +17,9 @@ use Symfony\Component\Security\Core\User\UserInterface;
 #[ORM\Table(name: '`user`')]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 // class User implements UserInterface, PasswordAuthenticatedUserInterface
-class User
+class User implements UserInterface, PasswordAuthenticatedUserInterface
+// UserInterface makes the class/entity a Symfony user.
+// PasswordAuthenticatedUserInterface means the password uses auth
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -24,21 +27,10 @@ class User
     private ?int $id = null;
 
     #[Assert\NotBlank]
-    #[Assert\Length(min: 3, max: 50)]
-    #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Email]
+    #[Assert\Length(min: 3, max: 180)]
+    #[ORM\Column(length: 255, unique: true)]
     private ?string $email = null;
-
-    #[Assert\Length(min: 3, max: 50)]
-    #[ORM\Column(length: 15, nullable: true)]
-    private ?string $name = null;
-
-    #[Assert\Length(min: 3, max: 50)]
-    #[ORM\Column(length: 30, nullable: true)]
-    private ?string $surname = null;
-
-    #[Assert\NotBlank]
-    #[ORM\Column(length: 50)]
-    private ?string $username = null;
 
     /**
      * @var string The hashed password
@@ -47,10 +39,7 @@ class User
     #[Assert\Length(min: 8, max: 50)]
     #[ORM\Column(length: 255)]
     private ?string $password = null;
-
-    #[ORM\Column(enumType: UserRole::class)]
-    private ?UserRole $role = null;
-
+    
     /**
      * @var list<string> The user roles
      */
@@ -87,42 +76,6 @@ class User
         return $this;
     }
 
-    public function getName(): ?string
-    {
-        return $this->name;
-    }
-
-    public function setName(?string $name): static
-    {
-        $this->name = $name;
-
-        return $this;
-    }
-
-    public function getSurname(): ?string
-    {
-        return $this->surname;
-    }
-
-    public function setSurname(?string $surname): static
-    {
-        $this->surname = $surname;
-
-        return $this;
-    }
-
-    public function getUsername(): ?string
-    {
-        return $this->username;
-    }
-
-    public function setUsername(string $username): static
-    {
-        $this->username = $username;
-
-        return $this;
-    }
-    
     /**
      * @see PasswordAuthenticatedUserInterface
      */
@@ -134,18 +87,6 @@ class User
     public function setPassword(string $password): static
     {
         $this->password = $password;
-
-        return $this;
-    }
-
-    public function getRole(): ?UserRole
-    {
-        return $this->role;
-    }
-
-    public function setRole(UserRole $role): static
-    {
-        $this->role = $role;
 
         return $this;
     }
@@ -180,21 +121,6 @@ class User
         return $this;
     }
 
-    private function ensureIsValidEmail(string $email): void
-    {
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            throw new InvalidArgumentException(
-                sprintf(
-                    '"%s" is not a valid email address',
-                    $email,
-                ),
-            );
-        }
-    }
-
-
-
-
     /**
      * A visual identifier that represents this user.
      *
@@ -225,5 +151,10 @@ class User
         $this->roles = $roles;
 
         return $this;
+    }
+
+    #[Override]
+    public function eraseCredentials(): void
+    {
     }
 }
