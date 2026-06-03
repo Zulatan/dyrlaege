@@ -191,15 +191,14 @@ class Task
         return $this;
     }
 
-    public function getAssignedTo(): ?int
+    public function getAssignedTo(): ?User
     {
         return $this->assignedTo;
     }
 
-    public function setAssignedTo(?User $user): static
+    public function setAssignedTo(?User $user): self
     {
-        $this->user = $user;
-
+        $this->assignedTo = $user;
         return $this;
     }
 
