@@ -28,7 +28,7 @@ security:
             # switch_user: true
             
         
-
+    
 
         
         login:
@@ -63,6 +63,12 @@ security:
                 # cache_pool: 'cache.rate_limiter'
                 # or use a custom storage service (takes precedence over cache_pool)
                 # storage_service: 'app.my_custom_storage'
+
+    ## Role hierarchy: if a user has ROLE_ADMIN, then they automatically inherit ROLE_VET, ROLE_USER
+    role_hierarchy:
+
+        ROLE_ADMIN: [ROLE_VET, ROLE_RECEPTIONIST] 
+        ROLE_VET: [ROLE_USER]
 
 
     access_control:
