@@ -53,9 +53,6 @@ class Task
     #[ORM\Column(nullable: true)]
     private ?int $createdBy = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?int $assignedTo = null;
-
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'tasks')]
     #[ORM\JoinColumn(nullable: true)]
     private ?User $user = null;
@@ -188,17 +185,6 @@ class Task
     {
         $this->createdBy = $createdBy;
 
-        return $this;
-    }
-
-    public function getAssignedTo(): ?User
-    {
-        return $this->assignedTo;
-    }
-
-    public function setAssignedTo(?User $user): self
-    {
-        $this->assignedTo = $user;
         return $this;
     }
 
