@@ -15,12 +15,13 @@ use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-#[Route('/tasks')]
 final class TaskController extends AbstractController
 {
-    #[Route(name: 'app_task_index', methods: ['GET'])]
+    #[Route('/api/tasks', name: 'tasks_index', methods: ['GET'])]
+    #[IsGranted('ROLE_ADMIN')]
     public function index(TaskRepository $taskRepository): Response
     {
         $tasks = $taskRepository->findAll();
@@ -40,9 +41,9 @@ final class TaskController extends AbstractController
                 'tildelt til' => $task->getUser()
                     ? [
                         'id' => $task->getUser()->getId(),
-                        'brugernavn' => $task->getUser()->getUsername(),
+                        // 'brugernavn' => $task->getUser()->getUsername(),
                         'email' => $task->getUser()->getEmail(),
-                        'rolle' => $task->getUser()->getRole(),
+                        // 'rolle' => $task->getUser()->getRole(),
                     ]
                     : null,
             ];
@@ -50,11 +51,11 @@ final class TaskController extends AbstractController
     }
 
 
-    #[Route('/search', name: 'task_search', methods: ['GET'])]
+    #[Route('/api/tasks/search', name: 'task_search', methods: ['GET'])]
+    #[IsGranted('ROLE_VET')]
     public function search(TaskRepository $taskRepository): JsonResponse
     {
         try {
-            //code...
             $tasks = $taskRepository->getAllWithStatus(TaskStatus::TODO);
             return $this->json($tasks);
         } catch (Exception $e) {
@@ -62,25 +63,8 @@ final class TaskController extends AbstractController
         }
     }
 
-
-    // #[Route('/{id}', name: 'app_task_findOne', methods: ['GET'])]
-    // public function findOne(TaskRepository $taskRepository, Int $id): Response
-    // {
-    //     $task = $taskRepository->find($id);
-
-    //     if (!$task) {
-    //         return new JsonResponse(['message' => 'Task not found'], 404);
-    //     }
-        
-    //     return new JsonResponse([
-    //         'id' => $task->getId(),
-    //         'title' => $task->getTitle(),
-    //         'description' => $task->getDescription(),
-    //         'priority' => $task->getPriority(),
-    //         'complete' => $task->isComplete(),
-    //     ]);
-    // }
-    #[Route('/{id}', name: 'task_find_one', requirements: ['id' => '\d+'], methods: ['GET'])]
+    #[Route('/api/tasks/{id}', name: 'task_find_one', requirements: ['id' => '\d+'], methods: ['GET'])]
+    #[IsGranted('ROLE_VET')]
     public function findOne(Task $task): Response
     {
         return new JsonResponse([
@@ -92,16 +76,17 @@ final class TaskController extends AbstractController
             'tildelt til' => $task->getUser()
                 ? [
                     'id' => $task->getUser()->getId(),
-                    'brugernavn' => $task->getUser()->getUsername(),
+                    // 'brugernavn' => $task->getUser()->getUsername(),
                     'email' => $task->getUser()->getEmail(),
-                    'rolle' => $task->getUser()->getRole(),
+                    // 'rolle' => $task->getUser()->getRole(),
                 ]
                 : null,
         ]);
     }
 
 
-    #[Route('/create', name: 'create_task', methods: ['POST'])]
+    #[Route('api/tasks/create', name: 'create_task', methods: ['POST'])]
+    #[IsGranted('ROLE_VET')]
     public function create(
         EntityManagerInterface $entityManager, 
         Request $request,
@@ -109,16 +94,21 @@ final class TaskController extends AbstractController
     ): Response
     {
         try {
-            $user = $entityManager->getRepository(User::class)->find(1);
+            // $user = $entityManager->getRepository(User::class)->find(1);
 
             $task = new Task();
+
+
             $task->setTitle('Sej titel.');
             $task->setDescription('Sej beskrivelse på opgaven.');
             $task->setPriority(TaskPriority::Moderate);
             $task->setCreatedAt(new DateTimeImmutable("now"));
             $task->setDueDate(new DateTimeImmutable("+1 day"));
+          
             // relates this taska to a user
-            $task->setUser($user);
+            // $task->setUser($user);
+
+            // $request->toArray();
 
             $errors = $validator->validate($task);
 
@@ -142,14 +132,15 @@ final class TaskController extends AbstractController
     
             return new Response(
                 'Oprettede ny opgave med titlen: '.$task->getTitle()
-                . ' og tildelte opgaven til: ' . $task->getUser()->getName()
+                . ' og tildelte opgaven til: ' . $task->getUser()->getEmail()
             );
         } catch (Exception $e) {
             throw new Exception($e->getMessage());
         }
     }
 
-    #[Route('/{id}', name: 'app_task_edit', methods: ['PATCH'])]
+    #[Route('/api/tasks/{id}', name: 'app_task_edit', methods: ['PATCH'])]
+    #[IsGranted('ROLE_VET')]
     public function edit(Task $task): Response
     {
         return new JsonResponse([
